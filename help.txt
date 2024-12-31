@@ -14,4 +14,10 @@ Run this inside "django_container" to migrations changes:
 - python manage.py makemigrations
 
 
+Run test:
+-docker exec -it django_container coverage run manage.py test
+
+See coverage:
+- docker exec -it django_container coverage report
+
 -pip freeze > requirements.txt

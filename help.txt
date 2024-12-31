@@ -13,3 +13,5 @@ Run this inside "django_container" to Unmigrate:
 Run this inside "django_container" to migrations changes:
 - python manage.py makemigrations
 
+
+-pip freeze > requirements.txt

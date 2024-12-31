@@ -1,0 +1,15 @@
+Open "django_container" in docker:
+- docker exec -it django_container bash
+
+Run the cli command inside the "django_container" to generate the model response:
+- python manage.py process_properties
+
+Run this inside "django_container" to Create Django Superuser:
+- python manage.py createsuperuser
+
+Run this inside "django_container" to Unmigrate:
+- python manage.py migrate <app_name> zero
+
+Run this inside "django_container" to migrations changes:
+- python manage.py makemigrations
+

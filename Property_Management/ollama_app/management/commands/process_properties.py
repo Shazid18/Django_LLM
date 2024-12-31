@@ -1,4 +1,3 @@
-# management/commands/process_properties.py
 from django.core.management.base import BaseCommand
 from django.db import transaction
 import requests
@@ -19,12 +18,11 @@ class OllamaClient:
         try:
             response = requests.post(
                 f"{self.base_url}/api/generate",
-                json={"model": self.model, "prompt": prompt, "stream": False},  # Set stream to False
-                stream=False  # Don't stream the response
+                json={"model": self.model, "prompt": prompt, "stream": False},
+                stream=False
             )
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
             
-            # Parse the JSON response
             response_data = response.json()
             return response_data.get('response', '')
             
@@ -45,40 +43,38 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
         self.ollama = OllamaClient()
 
-    def generate_property_description(self, hotel: Hotel) -> Dict[str, str]:
-        prompt = f"""
-        Based on the following hotel information, generate two separate sections:
-        1. A catchy, SEO-friendly title (keep it under 100 characters)
-        2. A detailed description highlighting the location, amenities, and unique features
+    def generate_property_description_and_modify_title(self, hotel: Hotel) -> Dict[str, str]:
+        prompt = f"""Modify the title and generate a description for this hotel property. Respond EXACTLY in this format:
+            TITLE: [modify the title with a catchy, SEO-friendly title under 100 characters]
+            DESCRIPTION: [write a detailed description highlighting the location, amenities, and unique features]
 
-        Hotel Information:
-        - Location: {hotel.location}, {hotel.city}
-        - Price: ${hotel.price}
-        - Room Type: {hotel.room_type}
-        - Rating: {hotel.rating}
-
-        Format your response as:
-        TITLE: [Your title here]
-        DESCRIPTION: [Your description here]
-        """
+            Hotel Information:
+            - Title: {hotel.title}
+            - Location: {hotel.location}, {hotel.city}
+            - Price: ${hotel.price}
+            - Room Type: {hotel.room_type}
+            - Rating: {hotel.rating}"""
         
         try:
             response = self.ollama.generate(prompt)
             
-            # Parse response using the TITLE and DESCRIPTION markers
-            title_start = response.find("TITLE:") + 6
-            desc_start = response.find("DESCRIPTION:") + 12
+            # Split response using exact markers
+            title = ""
+            description = ""
             
-            if title_start < 6 or desc_start < 12:  # If markers not found
-                # Fallback parsing - split by double newline
-                parts = response.split('\n\n', 1)
-                title = parts[0].strip()
-                description = parts[1].strip() if len(parts) > 1 else response.strip()
+            if "TITLE:" in response and "DESCRIPTION:" in response:
+                # Find the indices of the markers
+                title_start = response.find("TITLE:") + 6
+                desc_start = response.find("DESCRIPTION:") + 12
+                desc_end = len(response)
+                
+                # Extract title (everything between TITLE: and DESCRIPTION:)
+                title = response[title_start:response.find("DESCRIPTION:")].strip()
+                
+                # Extract description (everything after DESCRIPTION:)
+                description = response[desc_start:desc_end].strip()
             else:
-                # Use markers to extract content
-                title_end = response.find("DESCRIPTION:") if "DESCRIPTION:" in response else len(response)
-                title = response[title_start:title_end].strip()
-                description = response[desc_start:].strip()
+                raise ValueError("Response format incorrect: Missing TITLE: or DESCRIPTION: markers")
             
             return {
                 'title': title[:255],  # Ensure title fits in database field
@@ -88,58 +84,74 @@ class Command(BaseCommand):
             logger.error(f"Error generating property description: {str(e)}")
             raise
 
-    def generate_summary(self, property_content: PropertyContent) -> str:
-        prompt = f"""
-        Create a concise one-paragraph summary of the following property:
+    def generate_summary(self, hotel: Hotel, property_content: PropertyContent) -> str:
+        prompt = f"""Create a concise one-paragraph summary of the following property. Respond EXACTLY in this format:
+            SUMMARY: [write a summary under 500 characters]
 
-        Title: {property_content.title}
-        Description: {property_content.description}
+            Hotel Information:
+            - Title: {hotel.title}
+            - Location: {hotel.location}, {hotel.city}
+            - Price: ${hotel.price}
+            - Room Type: {hotel.room_type}
+            - Rating: {hotel.rating}
+            - Description: {property_content.description}
 
-        Keep the summary under 500 characters and focus on the key selling points.
-        """
-        
-        try:
-            return self.ollama.generate(prompt)
-        except Exception as e:
-            logger.error(f"Error generating summary: {str(e)}")
-            raise
-
-    def generate_review(self, property_content: PropertyContent) -> Dict[str, Any]:
-        prompt = f"""
-        Generate a realistic guest review based on this property:
-
-        Title: {property_content.title}
-        Description: {property_content.description}
-
-        Format your response as:
-        RATING: [number between 1.0-5.0]
-        REVIEW: [detailed guest review]
-        """
+            Keep the summary under 500 characters and focus on the key selling points."""
         
         try:
             response = self.ollama.generate(prompt)
             
-            # Parse response using the RATING and REVIEW markers
-            rating_start = response.find("RATING:") + 7
-            review_start = response.find("REVIEW:") + 7
+            summary = ""
             
-            if rating_start < 7 or review_start < 7:  # If markers not found
-                # Fallback parsing
-                parts = response.split('\n', 1)
-                try:
-                    rating = float(parts[0].strip())
-                except ValueError:
-                    rating = 4.0  # Default rating if parsing fails
-                review = parts[1].strip() if len(parts) > 1 else response.strip()
+            if "SUMMARY:" in response:
+                # Find the index of the SUMMARY: marker
+                summary_start = response.find("SUMMARY:") + 8
+                summary = response[summary_start:].strip()
             else:
-                # Use markers to extract content
-                rating_end = response.find("REVIEW:")
-                rating_str = response[rating_start:rating_end].strip()
+                raise ValueError("Response format incorrect: Missing SUMMARY: marker")
+            
+            # Ensure summary doesn't exceed 500 characters
+            return summary[:500]
+            
+        except Exception as e:
+            logger.error(f"Error generating summary: {str(e)}")
+            raise
+
+    def generate_review(self, hotel: Hotel, property_content: PropertyContent) -> Dict[str, Any]:
+        prompt = f"""Generate a realistic guest review based on this property. Respond EXACTLY in this format:
+            RATING: [number between 1.0-5.0]
+            REVIEW: [write a detailed guest review]
+
+            Hotel Information:
+            - Title: {hotel.title}
+            - Location: {hotel.location}, {hotel.city}
+            - Price: ${hotel.price}
+            - Room Type: {hotel.room_type}
+            - Rating: {hotel.rating}
+            - Description: {property_content.description}"""
+        
+        try:
+            response = self.ollama.generate(prompt)
+            
+            rating = 4.0  # Default rating
+            review = ""
+            
+            if "RATING:" in response and "REVIEW:" in response:
+                # Find the indices of the markers
+                rating_start = response.find("RATING:") + 7
+                review_start = response.find("REVIEW:") + 7
+                
+                # Extract rating
+                rating_str = response[rating_start:response.find("REVIEW:")].strip()
                 try:
                     rating = float(rating_str)
                 except ValueError:
                     rating = 4.0  # Default rating if parsing fails
+                
+                # Extract review
                 review = response[review_start:].strip()
+            else:
+                raise ValueError("Response format incorrect: Missing RATING: or REVIEW: markers")
             
             return {
                 'rating': min(max(rating, 1.0), 5.0),  # Ensure rating is between 1.0 and 5.0
@@ -151,7 +163,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        hotels = Hotel.objects.all()
+        hotels = Hotel.objects.all().order_by('-id')[:2]  # Limit to 2 properties for testing
         self.stdout.write(f"Processing {hotels.count()} properties...")
         
         success_count = 0
@@ -160,26 +172,30 @@ class Command(BaseCommand):
         for hotel in hotels:
             try:
                 # Generate and save property content
-                content_data = self.generate_property_description(hotel)
+                content_data = self.generate_property_description_and_modify_title(hotel)
                 property_content = PropertyContent.objects.create(
                     hotel=hotel,
                     title=content_data['title'],
-                    description=content_data['description']
+                    description=content_data['description'],
+                    propertyId=hotel.hotelId
+                    
                 )
 
                 # Generate and save summary
-                summary = self.generate_summary(property_content)
+                summary = self.generate_summary(hotel, property_content)
                 PropertySummary.objects.create(
                     property=property_content,
-                    summary=summary
+                    summary=summary,
+                    propertyId=hotel.hotelId
                 )
 
                 # Generate and save review
-                review_data = self.generate_review(property_content)
+                review_data = self.generate_review(hotel, property_content)
                 PropertyReview.objects.create(
                     property=property_content,
                     rating=review_data['rating'],
-                    review=review_data['review']
+                    review=review_data['review'],
+                    propertyId=hotel.hotelId
                 )
 
                 success_count += 1

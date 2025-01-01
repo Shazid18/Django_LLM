@@ -5,84 +5,54 @@ This project is a Django-based Command-Line Interface (CLI) application that int
 ## Features
 
 ### Core Features
-1. **Locations**:
-   - Locations with hierarchical nesting (country, state, city).
-   - Geospatial data integration using PostGIS (e.g., latitude, longitude).
-   - Add locations via CSV import through the admin interface.
+1. **Property Data Fetching:**
+   - Fetches property data from the existing `hotels` table in the database, which includes details like title, hotelId, city, location, price, image_path, rating, room_type, latitude, and longitude.
 
-2. **Accommodations**:
-   - Manage property details such as title, location, amenities, and pricing.
-   - Store geolocation data to accommodations using PostGIS.
-   - Support for multiple images and JSONB-based amenities storage.
+2. **Title and Description Rewriting:**
+   - Uses the Ollama model to rewrite property titles and generate detailed descriptions based on the fetched data.
 
-3. **Localized Accommodation Details**:
-   - Provide localized accommodation descriptions and policies
+3. **Property Summary Generation:**
+   - Automatically generates a concise summary of the property based on the provided details using the selected Ollama model.
 
-4. **Property Owner Management**:
-   - Property owners can manage their own properties (after admin approval)
-   - Property owners can sign up and await approval before publishing their properties
+4. **Ratings and Reviews Generation:**
+   - Generates ratings and reviews for properties using the LLM model and stores them in the database.
 
-5. **Geospatial Support**:
-   - Advanced location-based data handling with PostGIS.
-
-6. **Sitemap Generation**:
-   - Automaticlly generate a sitemap.json file for all country locations alphabetically by location name.
-
-7. **Partition**
-   - Partition the database for optimize the application
+5. **Ollama Model Integration:**
+   - Integrates with the Ollama model (`llama3.2` model) to generate human-like text based on property data, including title rewriting, descriptions, summaries, and reviews.
  
 
 ## Project Structure
 
 ```plaintext
-Inventory_Management/                          # Main project directory
-│
-├── sitemap.json                               # Sitemap configuration or generated file 
-├── Inventory_Management/                      # Project settings and configuration files
+Property_Management/
+├── Property_Management/
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py
 │   ├── urls.py
 │   ├── wsgi.py
-│
-├── property_management/                      # Main Django app for managing properties
-│   ├── __init__.py
-│   ├── admin.py                               # Django admin interface configuration
-│   ├── apps.py                                # App-specific configuration
-│   ├── forms.py                               # Forms for property management
-│   ├── models.py                              # Data models for the app (e.g., properties, owners)
-│   ├── resources.py                           # External data handling or integration (e.g., CSV imports)
-│   ├── tests.py                               # Unit tests for the app
-│   ├── urls.py                                # URL routing for the app
-│   ├── views.py                               # Views for rendering responses
-│   ├── migrations/                           # Database migrations
-│   │   ├── 0001_initial.py
-│   │   ├── 0002_remove_accommodation_images_and_more.py
-│   │   ├── 0003_accommodation_images.py
-        ├── 0004_auto_partition_accommodation.py
-│   │   └── __init__.py
-│   │
-│   ├── management/                            # Custom management commands
-│   │   ├── __init__.py
+├── ollama_app/
+│   ├── management/
 │   │   ├── commands/
-│   │   │   ├── create_property_owners_group.py  # Command to create property owner groups
-│   │   │   ├── generate_sitemap.py           # Command to generate sitemap
-│   │   │   └── populate_location_data.py     # Command to populate location data
-│   │
-│   └── templates/                             # HTML templates for rendering pages
-│       ├── base_generic.html                  # Base template
-│       ├── property_owner_sign_up.html        # Template for property owner sign-up
-│       ├── property_owner_sign_up_success.html # Template for successful sign-up
-│       └── __init__.py
-│
-├── .coveragerc                                # Coverage configuration file for tests
-├── Dockerfile                                 # Docker configuration for containerizing the app
-├── docker-compose.yml                        # Docker Compose file to manage multiple services
-├── manage.py                                  # Django command-line utility
-├── requirements.txt                          # Dependencies for the Docker Project
-help.txt                                      # Helpful information or documentation 
-.gitignore                                     # Git ignore file 
-requirements.txt                              # Dependencies for the Project
+│   │   │   ├── __init__.py
+│   │   │   ├── process_properties.py
+│   │   ├── __init__.py
+│   ├── migrations/
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_propertycontent_propertyid_propertyreview_propertyid_and_more.py
+│   │   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── views.py
+├── Dockerfile
+├── docker-compose.yml
+├── manage.py
+├── requirements.txt
+├── .gitignore
+├──  README.md
+└── requirements.txt
 ```
 
 
@@ -90,21 +60,23 @@ requirements.txt                              # Dependencies for the Project
 ## Project Setup
 
 ### Prerequisites
+
 - **Python 3.8+**
-- **PostgreSQL** with **PostGIS extensions**
+- **Django 4.x**
+- **PostgreSQL**
+- **Ollama**
 - **Docker** and **Docker Compose**
 
 ### Docker Configuration
-This project uses Docker and Docker Compose to run the application with all necessary services, including the PostgreSQL database with the PostGIS extension.
-
+This project uses Docker and Docker Compose to run the application with all necessary services, including the PostgreSQL database and Ollama model.
 - The `Dockerfile` sets up the application container.
-- The `docker-compose.yml` file defines the services required to run the application (Django, PostgreSQL, etc.).
+- The `docker-compose.yml` file defines the services required to run the application (Django, PostgreSQL, Ollama etc.).
 
 ### Installation Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Shazid18/Property-Management-System.git
-   cd Property-Management-System
+   git clone https://github.com/Shazid18/Django_LLM.git
+   cd Django_LLM
    ```
 2. Set up a virtual environment:
    ```bash

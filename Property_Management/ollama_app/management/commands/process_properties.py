@@ -53,7 +53,9 @@ class Command(BaseCommand):
             - Location: {hotel.location}, {hotel.city}
             - Price: ${hotel.price}
             - Room Type: {hotel.room_type}
-            - Rating: {hotel.rating}"""
+            - Rating: {hotel.rating}
+
+            Focus only on providing the TITLE and DESCRIPTION under the respective markers. DO NOT include any other text or information."""
         
         try:
             response = self.ollama.generate(prompt)
@@ -86,7 +88,7 @@ class Command(BaseCommand):
 
     def generate_summary(self, hotel: Hotel, property_content: PropertyContent) -> str:
         prompt = f"""Create a concise one-paragraph summary of the following property. Respond EXACTLY in this format:
-            SUMMARY: [write a summary under 500 characters]
+            SUMMARY: [write a summary under 500 characters, no other text or information]
 
             Hotel Information:
             - Title: {hotel.title}
@@ -96,7 +98,7 @@ class Command(BaseCommand):
             - Rating: {hotel.rating}
             - Description: {property_content.description}
 
-            Keep the summary under 500 characters and focus on the key selling points also give in one-paragraph format."""
+            Focus only on the key selling points of the property and make sure the response is just the summary under 500 characters. DO NOT include any other text, just the summary under the "SUMMARY:" marker."""
         
         try:
             response = self.ollama.generate(prompt)

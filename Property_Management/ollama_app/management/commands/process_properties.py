@@ -96,7 +96,7 @@ class Command(BaseCommand):
             - Rating: {hotel.rating}
             - Description: {property_content.description}
 
-            Keep the summary under 500 characters and focus on the key selling points."""
+            Keep the summary under 500 characters and focus on the key selling points also give in one-paragraph format."""
         
         try:
             response = self.ollama.generate(prompt)
@@ -164,7 +164,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         hotels = Hotel.objects.all().order_by('-id')[:2]  # Limit to 2 properties for testing
-        self.stdout.write(f"Processing {hotels.count()} properties...")
+        self.stdout.write(f"Processing {len(hotels)} properties...")
         
         success_count = 0
         error_count = 0

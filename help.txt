@@ -21,3 +21,7 @@ See coverage:
 - docker exec -it django_container coverage report
 
 -pip freeze > requirements.txt
+
+
+Run the cli command generate the model response:
+- docker exec -it django_container python manage.py process_properties

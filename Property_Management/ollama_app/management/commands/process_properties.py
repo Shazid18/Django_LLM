@@ -165,7 +165,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        hotels = Hotel.objects.all().order_by('-id')[:2]  # Limit to 2 properties for testing
+        hotels = Hotel.objects.all().order_by('-id')[:5]  # Limit to 5 properties for testing. Change here to process how many properties you want
         self.stdout.write(f"Processing {len(hotels)} properties...")
         
         success_count = 0

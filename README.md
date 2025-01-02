@@ -1,24 +1,42 @@
-# Property Management System
+# Django CLI Application Using Ollama Model
 
-This project is a Django-based Command-Line Interface (CLI) application that integrates the Ollama LLM model to rewrite property information, generate summaries, ratings, and reviews for properties. The application uses Django ORM for database interactions and stores data in a PostgreSQL database. It fetches data from an existing hotels table, rewrites property titles, generates descriptions, and produces summaries, ratings, and reviews using the Ollama model.
+## Table of Contents
+  
+  1. [Project Overview](#project-overview)
+  2. [Features](#features)
+  3. [Project Structure](#project-structure)
+  4. [Getting Started](#getting-started)
+     - [Prerequisites](#prerequisites)
+     - [Docker Configuration](#docker-configuration)
+     - [Installation Steps](#installation-steps)
+     - [Load Ollama model](#load-ollama-model)
+     - [Run Application](#running-the-application)
+     - [Docker Configuration](#docker-configuration)
+  5. [Usage](#usage)
+  2. [Testing](#testing)
+  3. [Contributing](#contributing)
+
+
+## Project Overview
+
+This project is a Django-based Command-Line Interface (CLI) application that integrates the Ollama LLM model to rewrite property information, generate summaries, ratings, and reviews for properties. The application uses Django ORM for database interactions and stores data in a PostgreSQL database. It interacts with a PostgreSQL database to fetch property data, then utilizes Ollama to generate human-like text, including property titles, descriptions, summaries, ratings, and reviews.
 
 ## Features
 
-### Core Features
 1. **Property Data Fetching:**
-   - Fetches property data from the existing `hotels` table in the database, which includes details like title, hotelId, city, location, price, image_path, rating, room_type, latitude, and longitude.
+   - Fetches property details (title, location, price, image, etc.) from the `hotels` table in the database.
 
 2. **Title and Description Rewriting:**
-   - Uses the Ollama model to rewrite property titles and generate detailed descriptions based on the fetched data.
+   - Uses Ollama model to rewrite titles and generate detailed descriptions.
 
 3. **Property Summary Generation:**
-   - Automatically generates a concise summary of the property based on the provided details using the selected Ollama model.
+   - Automatically generates concise summaries based on property details.
 
 4. **Ratings and Reviews Generation:**
-   - Generates ratings and reviews for properties using the LLM model and stores them in the database.
+   - Generates ratings and reviews using Ollama and stores them in the database.
 
 5. **Ollama Model Integration:**
-   - Integrates with the Ollama model (`llama3.2` model) to generate human-like text based on property data, including title rewriting, descriptions, summaries, and reviews.
+   - Integrates the `llama3.2` model for content generation.
  
 
 ## Project Structure
@@ -57,7 +75,7 @@ Property_Management/
 
 
 
-## Project Setup
+## Getting Started
 
 ### Prerequisites
 
@@ -68,151 +86,189 @@ Property_Management/
 - **Docker** and **Docker Compose**
 
 ### Docker Configuration
-This project uses Docker and Docker Compose to run the application with all necessary services, including the PostgreSQL database and Ollama model.
-- The `Dockerfile` sets up the application container.
-- The `docker-compose.yml` file defines the services required to run the application (Django, PostgreSQL, Ollama etc.).
+The project uses Docker and Docker Compose to run the application and services (PostgreSQL, Ollama). The `Dockerfile` defines the application container, and `docker-compose.yml` manages services.
 
 ### Installation Steps
-1. Clone the repository:
+
+1. Clone the Scrapy Repository:
+     ```bash
+     git clone https://github.com/Shazid18/Scrapy_LLM.git
+     ```
+     ```bash
+     cd Scrapy_LLM
+     ```
+  
+  2. Set up a virtual environment:
+     ```bash
+     python3 -m venv venv
+     ```
+     
+  3. Activate the virtual environment:
+     ```bash
+     source venv/bin/activate   # On Windows: venv\Scripts\activate
+     ```
+  
+  4. Install dependencies:
+     ```bash
+     pip install -r requirements.txt
+     ```
+     
+  5. Run Docker:
+     ```bash
+     cd Scrapy_V2
+     ```
+     ```bash
+     docker-compose up --build
+     ```
+     Now it will start Scrape Data from https://uk.trip.com/hotels/?locale=en-GB&curr=GBP and store those data into Postgres Database.
+
+     Keep the Scrapy project's docker up and then follow the next instructions.
+
+6. Clone the Django LLM Repository in another mother folder:
    ```bash
    git clone https://github.com/Shazid18/Django_LLM.git
+   ```
+   ```bash
    cd Django_LLM
    ```
-2. Set up a virtual environment:
+7. Set up a virtual environment and activate it:
    ```bash
    python3 -m venv venv
-   source venv/bin/activate   # On Windows: venv\Scripts\activate
    ```
 
-3. Install project dependencies:
+8. Activate the virtual environment:
+     ```bash
+     source venv/bin/activate   # On Windows: venv\Scripts\activate
+     ```
+
+9. Install project dependencies:
    ```bash
    pip install -r requirements.txt
    ```
  
-4. Configure the database in settings.py:
+10. Configure PostgreSQL in  `settings.py` :
     ```plaintext
-    Update DATABASES with your PostgreSQL credentials and enable PostGIS.
+    Update the `DATABASES` section with the credentials for the Scrapy project's PostgreSQL database.
     ```
  
-### Running the Application
+11. Start Docker :
+      ```bash
+      cd Property_Management
+      ```
+      ```bash
+      docker-compose up --build -d
+      ```
  
-1. Docker Set Up:
+### Load Ollama model
+ 
+1. Start Ollama container :
    ```bash
-   cd Inventory_Management
+   docker exec -it ollama /bin/bash
+   ```
+
+3. Pull and load the model (`llama3.2`) :
+   ```bash
+   ollama pull llama3.2
+   ```
+
+4. Verify the model is loaded :
+   ```bash
+   ollama list
+   ```
+
+5. Exit Ollama container :
+   ```bash
+   exit
+   ```
+
+### Running the Application
+
+#### 1. Restart the Docker services:
+   ```bash
+   docker-compose down
+   ```
+   ```bash
    docker-compose up --build -d
    ```
-   
-2. Apply migrations:
-   ```bash
-   docker exec -it django_app python manage.py makemigrations
-   docker exec -it django_app python manage.py migrate
-   ```
 
-3. Create a superuser:
-   ```bash
-   docker exec -it django_app python manage.py createsuperuser
-   ```
+   This will apply migrations and create the required tables (`PropertyContent`, `PropertySummary`, `PropertyReview`).
 
-4. Start the server:
-   ```bash
-   docker exec -it django_app python manage.py runserver
-   ```
-   
-5. Access the application at http://localhost:8000/
+#### 2. Access services :
+
+   - **Django Web App**: http://localhost:8000
+
+   - **pgAdmin**: http://localhost:5050 (Username: `admin@admin.com` , Password: `admin`).
+
 
 ## Usage
 
-1. `http://localhost:8000` => Home page
+### 1. Generate Property Data
 
-2. `http://localhost:8000/sign-up/` => for Property Owner signup
+Run the following command to rewrite property titles, descriptions, generate summaries, ratings, and reviews using the Ollama model:
 
-3. `http://localhost:8000/sign-up/success/` => successful signup. If the admin permite the Active and Staff status of the user then the user can login into the admin pannel.
+```bash
+docker exec -it django_container python manage.py process_properties
+```
 
-3. Access the admin panel at `http://localhost:8000/admin/` and log in with your superuser credentials.
+This will generate AI generated re-written property titles and descriptions and generate property summaries, ratings and reviews for `5 properties`.
 
-## Command-Line Utility
+To modify the number of properties processed, update the `ollama_app/management/commands/process_properties.py` file (line 168). Example:
 
-- **Populate initial location data:**
-    To populate initial location data, run:
-   ```bash
-   docker exec -it django_app python manage.py populate_location_data
-   ```
-   
-- **Generate sitemap:**
-    To generate the sitemap, open the bash shell:
-   ```bash
-   docker exec -it django_app bash
-   ```
-   Then run:
-   ```bash
-   python manage.py generate_sitemap
-   ```
-   
-- **Update the Property Owners Group:**
-    Run the following command to create or update the property owners group:
-   ```bash
-   docker exec -it django_app python manage.py create_property_owners_group
-   ```
+- `hotels = Hotel.objects.all().order_by('-id')[:10]` for 10 properties.
+- `hotels = Hotel.objects.all().order_by('-id')` for all property.
 
-## Add accommodation Amenities field
 
-    ```
-    [
-     "Free Wi-Fi",
-     "Air Conditioning",
-     "Swimming Pool",
-     "Gym Access"
-    ]
-    ```
+### 2. Analyze the Data
 
-## Add Localized Accommodation Aolicy field
+- **Using Django Admin**:
+  - To access Django admin create a superadmin by execute these commands :
+  ```bash
+  docker exec -it django_container python manage.py createsuperuser
+  ```
+  - Register these credentials:
+    - `Username`: `admin`
+    - `Email Address`: `admin@admin.com`
+    - `Password`: `admin132456`
+    - Bypass password validation and create user anyway? [y/N]: y
+  - Go to http://localhost:8000/admin/
+  - Enter these credentials and log in:
+    - `Username`: `admin`
+    - `Password`: `admin132456`
+  - Click on **PropertyContent** to view the updated title and description of properties.
+  - Click on **PropertySummary** to view the updated summary of properties.
+  - Click on **PropertyReview** to view the updated ratings and reviews of properties.
 
-- language: en
+- **Using PgAdmin**:
+  - Go to http://localhost:5050/
+  - Enter these credentials and press the `Login` button:
+    - `Email Address / Username`: `admin@admin.com`
+    - `Password`: `admin`
+  - Right click on `Servers` and then `Register` > `Server`
+  - In `General` tab, enter `Name`: `PostgreSQL`
+  - In `Connection` tab, enter these details and click `Save`
+    - `Host name/address`: `db`
+    - `Port`: `5432`
+    - `Username`: `user`
+    - `Password`: `password`
+  - Then go to ***Servers > PostgreSQL > Databases > scrapy_db > Schemas > public > Tables***
+  - To view the AI generated names and description of hotels, right click on the **PropertyContent** table and click on `View/Edit Data` > `All Rows`
+  - To view the AI generated summary of hotels, right click on the **PropertySummary** table and click on `View/Edit Data` > `All Rows`
+  - To view the AI generated ratings and reviews of hotels, right click on the **PropertyReview** table and click on `View/Edit Data` > `All Rows`
 
-    ``` 
-    {
-    "pet_policy" : "Pets are not allowed.",
-    "smoking_policy" : "Smoking is prohibited indoors."
-    }
-    ```
-- language: Len
-
-    ``` 
-    {
-    "pet_policy" : "No se permiten mascotas.",
-    "smoking_policy" : "Está prohibido fumar en el interior."
-    }
-    ```
-
-## CSV Format for Locations
-
-**To import locations via CSV, ensure that the CSV file follows this format:**
-
-   ```bash
-   id,title,center,parent,location_type,country_code,state_abbr,city,created_at,updated_at
-   BD,Bangladesh,"POINT(90.3563 23.685)",,country,BD,,,,
-   BD-CTG,Chittagong,"POINT(91.815536 22.341900)",BD,state,BD,CTG,,,
-   BD-CTG-KH,Khulshi,"POINT(91.815536 22.341900)",BD-CTG,city,BD,CTG,"Khulshi",,
-   BD-DHA,Dhaka,"POINT(90.4125 23.8103)",BD,state,BD,DHA,,,
-   BD-DHA-MI,Mirpur,"POINT(90.4125 23.8103)",BD-DHA,city,BD,DHA,"Mirpur",,
-   ```
 
 ## Testing
-To run unit tests for the project, use:
+Run tests using coverage :
 
    ```bash
-   docker exec -it django_app python manage.py test
+   docker exec -it django_container coverage run manage.py test
    ```
 
-To see the coverage report, run:
+View the coverage report :
 
    ```bash
-   docker exec -it django_app coverage report
+   docker exec -it django_container coverage report
    ```
-   
-## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Contributing
 

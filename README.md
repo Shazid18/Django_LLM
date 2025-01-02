@@ -123,6 +123,7 @@ The project uses Docker and Docker Compose to run the application and services (
      Now it will start Scrape Data from https://uk.trip.com/hotels/?locale=en-GB&curr=GBP and store those data into Postgres Database.
 
      Keep the Scrapy project's docker up and then follow the next instructions.
+     ####
 
 6. Clone the Django LLM Repository in another mother folder:
    ```bash

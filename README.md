@@ -98,22 +98,22 @@ The project uses Docker and Docker Compose to run the application and services (
      cd Scrapy_LLM
      ```
   
-  2. Set up a virtual environment:
+2. Set up a virtual environment:
      ```bash
      python3 -m venv venv
      ```
      
-  3. Activate the virtual environment:
+3. Activate the virtual environment:
      ```bash
      source venv/bin/activate   # On Windows: venv\Scripts\activate
      ```
   
-  4. Install dependencies:
+4. Install dependencies:
      ```bash
      pip install -r requirements.txt
      ```
      
-  5. Run Docker:
+5. Run Docker:
      ```bash
      cd Scrapy_V2
      ```
@@ -166,17 +166,17 @@ The project uses Docker and Docker Compose to run the application and services (
    docker exec -it ollama /bin/bash
    ```
 
-3. Pull and load the model (`llama3.2`) :
+2. Pull and load the model (`llama3.2`) :
    ```bash
    ollama pull llama3.2
    ```
 
-4. Verify the model is loaded :
+3. Verify the model is loaded :
    ```bash
    ollama list
    ```
 
-5. Exit Ollama container :
+4. Exit Ollama container :
    ```bash
    exit
    ```
